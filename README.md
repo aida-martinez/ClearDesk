@@ -1,0 +1,1 @@
+# ClearDesk - Life admin, made simple
