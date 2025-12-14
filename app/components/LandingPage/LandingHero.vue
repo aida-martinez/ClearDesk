@@ -1,0 +1,62 @@
+<template>
+    <section class="relative bg-neutral-50 pt-20 pb-32 overflow-hidden lg:pt-32">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <div class="text-left space-y-7">
+                    <div class="inline-flex items-center px-5 py-3 rounded-full bg-primary-50 text-primary-600 text-sm font-medium tracking-wide border border-primary-100">
+                        Not a calendar. Not a planner.
+                    </div>
+                    <h1 class="text-5xl lg:text-6xl font-light text-neutral-900 tracking-tight leading-[1.1]">
+                        Life admin, without the calendar.
+                    </h1>
+                    <p class="text-lg text-neutral-600 leading-relaxed max-w-lg">
+                        Keep track of recurring reponsabilities, like renewing your driver's license, paying bills, or scheduling checkups, without scheduling your life.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                    <NuxtLink to="/register" class="px-8 py-3.5 text-base font-semibold text-white bg-primary-500 rounded-lg shadow-lg shadow-primary-500/30 hover:bg-primary-600 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
+                        Create Your Account
+                    </NuxtLink >
+                    <NuxtLink to="/demo" class="px-8 py-3.5 text-base font-semibold text-neutral-600 bg-white border border-neutral-200 rounded-lg hover:bg-neutral-50 hover:border-neutral-300 transition-all duration-300">
+                        See how it works
+                    </NuxtLink >
+                    </div>
+                </div>
+    
+                <!-- Hero Image / Dashboard Mockup -->
+                <div class="relative lg:ml-auto w-full max-w-lg">
+                    <div class="relative rounded-2xl bg-white shadow-2xl border border-neutral-100 overflow-hidden transform rotate-2 hover:rotate-0 transition-transform duration-500">
+                    <div class="h-8 bg-neutral-50 border-b border-neutral-100 flex items-center px-4 gap-2">
+                        <div class="w-2.5 h-2.5 rounded-full bg-error"></div>
+                        <div class="w-2.5 h-2.5 rounded-full bg-warning"></div>
+                        <div class="w-2.5 h-2.5 rounded-full bg-success"></div>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="font-bold text-neutral-900">Your Dashboard</h3>
+                            <button class="text-xs bg-primary-500 text-white px-2 py-1 rounded">+ Add Item</button>
+                        </div>
+                        <!-- Mock Items -->
+                        <div v-for="i in 3" :key="i" class="flex items-center p-3 rounded-lg bg-neutral-50 border border-neutral-100 hover:border-primary-200 transition-colors">
+                            <div class="w-8 h-8 rounded-full bg-primary-100 text-primary-500 flex items-center justify-center mr-3">
+                                <Icon name="heroicons:check-circle" class="w-5 h-5" />
+                            </div>
+                            <div class="flex-1">
+                                <div class="h-2 w-24 bg-neutral-200 rounded mb-1.5"></div>
+                                <div class="h-1.5 w-16 bg-neutral-100 rounded"></div>
+                            </div>
+                            <div class="text-xs text-neutral-400">2 days</div>
+                        </div>
+                    </div>
+                    </div>
+                    <!-- Floating Badge -->
+                    <div class="absolute -top-6 -right-6 animate-bounce">
+                        <div class="bg-secondary-400 text-white text-xs font-bold px-5 py-3 rounded-lg shadow-lg flex items-center gap-2">
+                            <Icon name="material-symbols:notifications-active-outline-sharp" class="inline-block size-5" />
+                            <p class="text-base">Reminder sent!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</template>

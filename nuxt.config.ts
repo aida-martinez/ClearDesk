@@ -11,6 +11,10 @@ export default defineNuxtConfig({
     '@nuxt/image',
   ],
 
+  icon: {
+    cssLayer: 'icon',
+  },
+
   postcss: {
     plugins: {
       '@tailwindcss/postcss': {},
