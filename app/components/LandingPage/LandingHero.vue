@@ -14,17 +14,17 @@
                     </p>
                     <div class="flex flex-col sm:flex-row gap-4">
                     <NuxtLink to="/register" class="px-8 py-3.5 text-base font-semibold text-white bg-primary-500 rounded-lg shadow-lg shadow-primary-500/30 hover:bg-primary-600 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
-                        Create Your Account
+                        Join the waitlist
                     </NuxtLink >
-                    <NuxtLink to="/demo" class="px-8 py-3.5 text-base font-semibold text-neutral-600 bg-white border border-neutral-200 rounded-lg hover:bg-neutral-50 hover:border-neutral-300 transition-all duration-300">
+                    <!-- <NuxtLink to="/demo" class="px-8 py-3.5 text-base font-semibold text-neutral-600 bg-white border border-neutral-200 rounded-lg hover:bg-neutral-50 hover:border-neutral-300 transition-all duration-300">
                         See how it works
-                    </NuxtLink >
+                    </NuxtLink > -->
                     </div>
                 </div>
     
                 <!-- Hero Image / Dashboard Mockup -->
                 <div class="relative lg:ml-auto w-full max-w-lg">
-                    <div class="relative rounded-2xl bg-white shadow-2xl border border-neutral-100 overflow-hidden transform rotate-2 hover:rotate-0 transition-transform duration-500">
+                    <div class="relative rounded-2xl bg-white shadow-2xl border border-neutral-100 overflow-hidden transform rotate-2">
                     <div class="h-8 bg-neutral-50 border-b border-neutral-100 flex items-center px-4 gap-2">
                         <div class="w-2.5 h-2.5 rounded-full bg-error"></div>
                         <div class="w-2.5 h-2.5 rounded-full bg-warning"></div>
@@ -36,22 +36,25 @@
                             <button class="text-xs bg-primary-500 text-white px-2 py-1 rounded">+ Add Item</button>
                         </div>
                         <!-- Mock Items -->
-                        <div v-for="i in 3" :key="i" class="flex items-center p-3 rounded-lg bg-neutral-50 border border-neutral-100 hover:border-primary-200 transition-colors">
+                        <div v-for="item in items" :key="item.title" class="flex items-center p-3 rounded-lg bg-neutral-50 border border-neutral-100 hover:border-primary-200 transition-colors">
                             <div class="w-8 h-8 rounded-full bg-primary-100 text-primary-500 flex items-center justify-center mr-3">
                                 <Icon name="heroicons:check-circle" class="w-5 h-5" />
                             </div>
                             <div class="flex-1">
-                                <div class="h-2 w-24 bg-neutral-200 rounded mb-1.5"></div>
-                                <div class="h-1.5 w-16 bg-neutral-100 rounded"></div>
+                                <div class="text-base">{{ item.title }}</div>
+                                <div class="text-sm text-neutral-500">{{ item.category }}</div>
                             </div>
-                            <div class="text-xs text-neutral-400">2 days</div>
+                            <div class="text-sm text-neutral-400 flex items-center gap-2">
+                                <Icon :name="item.icon" class="w-5 h-5 text-warning" />
+                               {{ item.timeframe }}
+                            </div>
                         </div>
                     </div>
                     </div>
                     <!-- Floating Badge -->
                     <div class="absolute -top-6 -right-6 animate-bounce">
                         <div class="bg-secondary-400 text-white text-xs font-bold px-5 py-3 rounded-lg shadow-lg flex items-center gap-2">
-                            <Icon name="material-symbols:notifications-active-outline-sharp" class="inline-block size-5" />
+                            <Icon name="heroicons:bell" class="inline-block size-5" />
                             <p class="text-base">Reminder sent!</p>
                         </div>
                     </div>
@@ -60,3 +63,12 @@
         </div>
     </section>
 </template>
+
+<script setup lang="ts">
+const items = [
+  {  title: 'Driver\'s LIcense Renawal', category: 'Government ID', timeframe: '2 weeks', icon: '' },
+  {  title: 'Annual Helth Checkup', category: 'Healthcare', timeframe: '1 month', icon: '' },
+  {  title: 'Car Insurance Renewal', category: 'Insurance', timeframe: '3 days', icon: 'heroicons:exclamation-circle-16-solid' },
+  {  title: 'Passport renewal', category: 'Government ID', timeframe: '4 months', icon: '' },
+]
+</script>
