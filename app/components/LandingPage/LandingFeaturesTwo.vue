@@ -1,8 +1,8 @@
 <template>
-  <section class="py-24 bg-neutral-50">
+  <section class="py-12 md:py-18 lg::py-24 bg-neutral-50">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center mb-18">
-        <h2 class="text-3xl font-light text-neutral-900 mb-4">A simple place for life's recurring responsibilities</h2>
+      <div class="text-center mb-12 md:mb-18">
+        <h2 class="text-2xl sm:text-3xl text-pretty font-light text-neutral-900 mb-4">A simple place for life's recurring responsibilities</h2>
         <p class="text-lg text-neutral-600">ClearDesk gives you a lightweight way to track bills, renewals, chores, and health tasks without turning your life into a calendar.</p>
       </div>
     </div>
@@ -11,8 +11,8 @@
       <div class="grid sm:grid-cols-2 gap-x-12 gap-y-12">
         <div v-for="(item, idx) in features" :key="idx" class="flex gap-4">
           <div class="flex-shrink-0">
-            <div class="w-20 h-20 rounded-3xl bg-gradient-to-br from-primary-500 to-secondary-400 text-secondary-600 flex items-center justify-center">
-              <component :is="item.icon" class="w-10 h-auto text-white" />
+            <div class="size-12 md:size-16 sm:size-20 rounded-2xl md:rounded-3xl bg-gradient-to-br from-primary-500 to-secondary-400 text-secondary-600 flex items-center justify-center">
+              <component :is="item.icon" class="w-7 md:w-10 h-auto text-white" />
             </div>
           </div>
           <div>

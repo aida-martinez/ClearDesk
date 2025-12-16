@@ -1,8 +1,8 @@
 <template>
-  <section class="py-24">
+  <section class="py-12 md:py-18 lg::py-24">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center max-w-2xl mx-auto mb-14">
-        <h2 class="text-3xl font-light text-neutral-900 mb-4">Life admin shouldn't feel like work</h2>
+      <div class="text-center max-w-2xl mx-auto mb-8 md:mb-14">
+        <h2 class="text-2xl sm:text-3xl text-pretty font-light text-neutral-900 mb-4">Life admin shouldn't feel like work</h2>
         <p class="text-lg text-neutral-600">You have enough to juggle. Keeping track of recurring responsibilities shouldn't add to the load.</p>
       </div>
 

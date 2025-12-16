@@ -1,12 +1,12 @@
 <template>
-  <section class="py-24 bg-neutral-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  <section class="py-12 md:py-18 lg:py-24 bg-neutral-50">
+    <div class="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
       <div class="text-center mb-16">
-        <h2 class="text-3xl font-light text-neutral-900 mb-4">Generous free tier. Cheap premium.</h2>
-        <p class="text-lg text-neutral-600">Start for free. Upgrade when you're ready.</p>
+        <h2 class="text-3xl text-pretty font-light text-neutral-900 mb-4">Generous free tier. Cheap premium.</h2>
+        <p class="text-lg text-balance text-neutral-600">Start for free. Upgrade when you're ready.</p>
       </div>
 
-      <div class="grid grid-cols-3 max-w-3xl lg:max-w-7xl mx-auto gap-8">
+      <div class="grid grid-cols-1 lg:grid-cols-3 max-w-3xl lg:max-w-7xl mx-auto gap-8">
         <!-- Free Tier -->
         <div class="bg-white p-8 rounded-2xl border border-neutral-100 shadow-sm relative overflow-hidden flex flex-col">
           <div class="grow">
