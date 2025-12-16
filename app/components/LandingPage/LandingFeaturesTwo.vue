@@ -12,7 +12,7 @@
         <div v-for="(item, idx) in features" :key="idx" class="flex gap-4">
           <div class="flex-shrink-0">
             <div class="size-12 md:size-16 sm:size-20 rounded-2xl md:rounded-3xl bg-gradient-to-br from-primary-500 to-secondary-400 text-secondary-600 flex items-center justify-center">
-              <component :is="item.icon" class="w-7 md:w-10 h-auto text-white" />
+              <component :is="item.icon" class="w-6 md:w-8 h-auto text-white" />
             </div>
           </div>
           <div>
