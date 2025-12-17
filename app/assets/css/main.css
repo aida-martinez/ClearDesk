@@ -1,0 +1,6 @@
+@import 'tailwindcss';
+
+@import './partials/tailwind.css';
+@import './partials/buttons.css';
+@import './partials/forms.css';
+/* @source '../'; */
