@@ -9,7 +9,17 @@ export default defineNuxtConfig({
     '@nuxt/hints',
     '@nuxt/icon',
     '@nuxt/image',
+    '@nuxtjs/supabase',
   ],
+
+  supabase: {
+    redirect: false,
+    redirectOptions: {
+      login: '/login',
+      callback: '/confirm',
+      exclude: ['/api/test-admin'],
+    },
+  },
 
   icon: {
     cssLayer: 'icon',
@@ -19,5 +29,16 @@ export default defineNuxtConfig({
     plugins: {
       '@tailwindcss/postcss': {},
     },
+  },
+
+  runtimeConfig: {
+    // This maps to NUXT_SUPABASE_SERVICE_KEY
+    supabaseServiceKey: '', 
+
+    public: {
+      // These map to NUXT_PUBLIC_SUPABASE_URL and NUXT_PUBLIC_SUPABASE_KEY
+      supabaseUrl: '',
+      supabaseKey: ''
+    }
   },
 })

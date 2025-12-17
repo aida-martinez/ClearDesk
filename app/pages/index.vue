@@ -1,26 +1,34 @@
+<script setup lang="ts">
+definePageMeta({
+    auth: false,
+})
+</script>
+
 <template>
-  <div class="min-h-screen font-sans bg-white selection:bg-primary-100 selection:text-primary-900">
-    <main class="pt-20">
-      <!-- Hero Section -->
-      <LandingPageLandingHero />
+    <div
+        class="selection:bg-primary-100 selection:text-primary-900 min-h-screen bg-white font-sans"
+    >
+        <main class="pt-20">
+            <!-- Hero Section -->
+            <LandingPageLandingHero />
 
-      <!-- Section: Life admin shouldn't feel like work -->
-      <LandingPageLandingFeaturesOne />
+            <!-- Section: Life admin shouldn't feel like work -->
+            <LandingPageLandingFeaturesOne />
 
-      <!-- Section: A simple place... -->
-      <LandingPageLandingFeaturesTwo />
+            <!-- Section: A simple place... -->
+            <LandingPageLandingFeaturesTwo />
 
-      <!-- Dark Section: What ClearDesk is NOT -->
-      <LandingPageLandingNotList />
+            <!-- Dark Section: What ClearDesk is NOT -->
+            <LandingPageLandingNotList />
 
-      <!-- How it works -->
-      <LandingPageLandingHowItWorks />
+            <!-- How it works -->
+            <LandingPageLandingHowItWorks />
 
-      <!-- Pricing -->
-      <LandingPageLandingPricing />
+            <!-- Pricing -->
+            <LandingPageLandingPricing />
 
-      <!-- Bottom CTA -->
-      <LandingPageLandingCta />
-    </main>
-  </div>
+            <!-- Bottom CTA -->
+            <LandingPageLandingCta />
+        </main>
+    </div>
 </template>
