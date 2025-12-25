@@ -1,16 +1,21 @@
 export default defineNuxtRouteMiddleware((to) => {
-  // Client-side only auth check since we don't have server-side session handling yet
-  // Client-side only auth check since we don't have server-side session handling yet
-  // if (import.meta.server) return
+    const user = useSupabaseUser()
 
-  // Skip if explicitly public
-  if (to.meta.auth === false) {
-    return
-  }
+    // 1. Guest-only routes (Login, Register)
+    // If user is logged in and trying to access a guest-only page, go to dashboard
+    if (to.meta.guestOnly && user.value) {
+        return navigateTo('/dashboard')
+    }
 
-  const user = useSupabaseUser()
+    // 2. Public routes (Landing Page, etc.)
+    // If auth is explicitly false, we don't need to do any further checks
+    if (to.meta.auth === false) {
+        return
+    }
 
-  if (!user.value && to.path !== '/login') {
-    return navigateTo('/login')
-  }
+    // 3. Auth-required routes (Dashboard, etc.)
+    // If no user is logged in, redirect to login
+    if (!user.value) {
+        return navigateTo('/login')
+    }
 })

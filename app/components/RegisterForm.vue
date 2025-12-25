@@ -1,30 +1,62 @@
 <template>
-    <div class="register-container mt-20">
-        <h2 class="mb-10 text-center text-3xl font-light">
-            Join <span class="text-primary font-semibold">ClearDeck</span>
-        </h2>
+    <div class="w-full">
         <form
             @submit.prevent="handleRegister"
             v-if="status.type !== 'registered'"
-            class="mx-auto flex max-w-lg flex-col gap-4"
+            class="flex flex-col gap-6"
         >
-            <input v-model="email" type="email" placeholder="Email" required />
-            <input
+            <AuthInput
+                v-model="email"
+                type="email"
+                label="Email"
+                placeholder="you@example.com"
+                required
+            >
+                <template #icon>
+                    <IconsEmailIcon class="h-5 w-5" />
+                </template>
+            </AuthInput>
+
+            <AuthInput
                 v-model="password"
                 type="password"
-                placeholder="Password"
+                label="Password"
+                placeholder="••••••••"
                 required
-            />
-            <input v-model="inviteCode" placeholder="Invite Code (Optional)" />
-            <button :disabled="loading" type="submit" class="button-action">
-                {{ loading ? 'Processing...' : 'Get Access' }}
+            >
+                <template #icon>
+                    <IconsLockIcon class="h-5 w-5" />
+                </template>
+            </AuthInput>
+
+            <AuthInput
+                v-model="inviteCode"
+                label="Invite Code (Optional)"
+                placeholder="Enter code"
+            >
+                <template #icon>
+                    <IconsShieldIcon class="h-5 w-5" />
+                </template>
+            </AuthInput>
+
+            <button
+                type="submit"
+                :disabled="loading"
+                class="bg-primary-500 hover:bg-primary-600 shadow-primary-500/20 mt-2 flex w-full items-center justify-center gap-2 rounded-2xl py-4 font-semibold text-white shadow-lg transition-all disabled:cursor-not-allowed disabled:opacity-50"
+            >
+                {{ loading ? 'Creating account...' : 'Create Account' }}
+                <IconsArrowRightIcon v-if="!loading" class="h-5 w-5" />
             </button>
         </form>
 
         <div
             v-if="status.message"
-            :class="['alert', status.type]"
-            class="my-10 text-center"
+            :class="[
+                'mt-6 rounded-xl p-4 text-center text-sm font-medium transition-all',
+                status.type === 'error'
+                    ? 'border border-red-100 bg-red-50 text-red-600'
+                    : 'border border-green-100 bg-green-50 text-green-600',
+            ]"
         >
             {{ status.message }}
         </div>
@@ -36,15 +68,16 @@ const email = ref('')
 const password = ref('')
 const inviteCode = ref('')
 const status = ref<{
-    type: 'success' | 'error' | 'waitlist' | ''
+    type: 'success' | 'error' | 'waitlist' | 'registered' | ''
     message: string
 }>({ type: '', message: '' })
 const loading = ref(false)
 
 async function handleRegister() {
     loading.value = true
+    status.value = { type: '', message: '' }
     try {
-        const response = await $fetch('/api/auth/register', {
+        const response: any = await $fetch('/api/auth/register', {
             method: 'POST',
             body: {
                 email: email.value,

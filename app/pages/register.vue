@@ -1,11 +1,18 @@
 <template>
-    <section>
+    <AuthBase
+        title="Create account"
+        :secondary-action="{ label: 'Sign In', to: '/login' }"
+        toggle-text="Already have an account?"
+        :toggle-action="{ label: 'Sign In', to: '/login' }"
+    >
         <RegisterForm />
-    </section>
+    </AuthBase>
 </template>
 
 <script setup lang="ts">
 definePageMeta({
     auth: false,
+    layout: false,
+    guestOnly: true,
 })
 </script>
