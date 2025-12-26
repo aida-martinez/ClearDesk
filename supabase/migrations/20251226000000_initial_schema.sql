@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS "public"."plans" (
 -- 2. Profiles table
 CREATE TABLE IF NOT EXISTS "public"."profiles" (
     "id" "uuid" NOT NULL PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-    "display_name" "text",
+
     "avatar_url" "text",
     "role" "text" DEFAULT 'member'::"text" NOT NULL,
     "subscription_status" "text" DEFAULT 'free'::"text" NOT NULL,
