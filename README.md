@@ -17,4 +17,16 @@ Now that you have Docker running, this is how you should work from now on:
 ### To get changes from the cloud
 
 1. supabase db pull --schema public
-2. supbase reset
+2. supabase reset
+
+## Useful commands
+
+supabase status
+supabase stop and supabase start
+
+### When Windows claims the ports
+
+netsh interface ipv4 show excludedportrange protocol=tcp
+
+net stop winnat
+net start winnat

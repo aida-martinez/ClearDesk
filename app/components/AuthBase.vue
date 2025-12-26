@@ -36,7 +36,7 @@
                     <span v-if="toggleText">{{ toggleText }} </span>
                     <NuxtLink
                         :to="toggleAction.to"
-                        class="text-primary-500 font-medium hover:underline"
+                        class="text-primary-500 ml-1 font-medium hover:underline"
                     >
                         {{ toggleAction.label }}
                     </NuxtLink>
