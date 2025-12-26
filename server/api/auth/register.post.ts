@@ -13,16 +13,49 @@ export default defineEventHandler(async (event) => {
       .eq('status', 'active')
       .single()
 
-    if (invite) {
+    // Check if code exists, is active, and NOT expired
+    const isExpired = invite?.expires_at && new Date(invite.expires_at) < new Date()
+
+    if (invite && !isExpired) {
       // 2. SUCCESS: Create user directly in Auth
-      const { error: signUpError } = await supabaseAdmin.auth.admin.createUser({
+      const { data: userData, error: signUpError } = await supabaseAdmin.auth.admin.createUser({
         email: body.email,
         password: body.password,
         email_confirm: true, // Auto-confirm since they have a code
-        user_metadata: { source: 'referral', code: body.inviteCode }
+        user_metadata: { 
+          source: 'referral', 
+          code: body.inviteCode,
+          plan: invite.target_plan_code || '0'
+        }
       })
 
       if (signUpError) throw createError({ statusCode: 400, message: signUpError.message })
+
+      const newUser = userData.user
+
+      // If the invite specified a special plan (not '0'), update the subscription
+      // The DB trigger handle_new_user already created a '0' (free) subscription.
+      if (invite.target_plan_code && invite.target_plan_code !== '0' && newUser) {
+        const { data: plan } = await supabaseAdmin
+          .from('plans')
+          .select('id')
+          .eq('code', invite.target_plan_code)
+          .single()
+
+        if (plan) {
+          // Update the existing subscription created by the DB trigger
+          await supabaseAdmin
+            .from('subscriptions')
+            .update({ plan_id: plan.id })
+            .eq('user_id', newUser.id)
+          
+          // Also update the denormalized status in profiles
+          await supabaseAdmin
+            .from('profiles')
+            .update({ subscription_status: invite.target_plan_code })
+            .eq('id', newUser.id)
+        }
+      }
 
       // Mark code as used
       await supabaseAdmin.from('referral_invites').update({ status: 'used' }).eq('invite_code', body.inviteCode)
@@ -31,7 +64,7 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  // 3. WAITLIST: If no code or invalid code, just add to waitlist table
+  // 3. WAITLIST / FALLBACK: If no code, invalid code, or expired code
   const { error: waitlistError } = await supabaseAdmin
     .from('waitlist')
     .insert({ email: body.email })
@@ -43,3 +76,4 @@ export default defineEventHandler(async (event) => {
 
   return { status: 'waitlist', message: 'You have been added to our waitlist!' }
 })
+
