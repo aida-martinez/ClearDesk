@@ -2,16 +2,17 @@ import { serverSupabaseServiceRole } from '#supabase/server'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
+  console.log('Register Request Body:', body)
   const supabaseAdmin = await serverSupabaseServiceRole(event)
 
   // 1. If code exists, check validity
   if (body.inviteCode) {
-    const { data: invite } = await supabaseAdmin
+    const { data: invite } = (await supabaseAdmin
       .from('referral_invites')
       .select('*')
       .eq('invite_code', body.inviteCode)
       .eq('status', 'active')
-      .single()
+      .single()) as { data: any }
 
     // Check if code exists, is active, and NOT expired
     const isExpired = invite?.expires_at && new Date(invite.expires_at) < new Date()
@@ -22,58 +23,100 @@ export default defineEventHandler(async (event) => {
         email: body.email,
         password: body.password,
         email_confirm: true, // Auto-confirm since they have a code
-        user_metadata: { 
-          source: 'referral', 
+        user_metadata: {
+          display_name: body.display_name,
+          source: 'referral',
           code: body.inviteCode,
-          plan: invite.target_plan_code || '0'
-        }
+          plan: invite.target_plan_code || '0',
+        },
       })
 
       if (signUpError) throw createError({ statusCode: 400, message: signUpError.message })
 
       const newUser = userData.user
 
+      // 3. Update profile with display name
+      if (newUser && body.display_name) {
+        await supabaseAdmin
+          .from('profiles')
+          .update({
+            display_name: body.display_name
+          } as any)
+          .eq('id', newUser.id)
+      }
+
       // If the invite specified a special plan (not '0'), update the subscription
       // The DB trigger handle_new_user already created a '0' (free) subscription.
       if (invite.target_plan_code && invite.target_plan_code !== '0' && newUser) {
-        const { data: plan } = await supabaseAdmin
+        const { data: plan } = (await supabaseAdmin
           .from('plans')
           .select('id')
           .eq('code', invite.target_plan_code)
-          .single()
+          .single()) as { data: any }
 
         if (plan) {
           // Update the existing subscription created by the DB trigger
           await supabaseAdmin
             .from('subscriptions')
-            .update({ plan_id: plan.id })
+            .update({ plan_id: plan.id } as any)
             .eq('user_id', newUser.id)
-          
+
           // Also update the denormalized status in profiles
           await supabaseAdmin
             .from('profiles')
-            .update({ subscription_status: invite.target_plan_code })
+            .update({
+              subscription_status: invite.target_plan_code,
+            } as any)
             .eq('id', newUser.id)
         }
       }
 
       // Mark code as used
-      await supabaseAdmin.from('referral_invites').update({ status: 'used' }).eq('invite_code', body.inviteCode)
+      await supabaseAdmin
+        .from('referral_invites')
+        .update({ status: 'used' } as any)
+        .eq('invite_code', body.inviteCode)
 
       return { status: 'success', message: 'Welcome! You can now log in.' }
     }
   }
 
   // 3. WAITLIST / FALLBACK: If no code, invalid code, or expired code
-  const { error: waitlistError } = await supabaseAdmin
-    .from('waitlist')
-    .insert({ email: body.email })
+  // We now create the user in Auth immediately to preserve their password,
+  // but we set their status to 'waitlisted' to block access.
+  const { data: userData, error: signUpError } = await supabaseAdmin.auth.admin.createUser({
+    email: body.email,
+    password: body.password,
+    email_confirm: true,
+    user_metadata: {
+      display_name: body.display_name,
+      source: 'waitlist',
+      status: 'waitlisted'
+    },
+  })
 
-  if (waitlistError) {
-    if (waitlistError.code === '23505') throw createError({ statusCode: 400, message: 'You are already on the waitlist!' })
-    throw createError({ statusCode: 400, message: 'Waitlist error. Please try again later.' })
+  if (signUpError) {
+    if (signUpError.message.includes('already registered')) {
+        throw createError({ statusCode: 400, message: 'This email is already registered or on the waitlist.' })
+    }
+    throw createError({ statusCode: 400, message: signUpError.message })
   }
 
-  return { status: 'waitlist', message: 'You have been added to our waitlist!' }
+  const newUser = userData.user
+
+  if (newUser) {
+    // 4. Update profile to 'waitlisted'
+    // The DB trigger handle_new_user creates the profile, we update it.
+    await supabaseAdmin
+      .from('profiles')
+      .update({
+        display_name: body.display_name,
+        subscription_status: 'waitlisted'
+      } as any)
+      .eq('id', newUser.id)
+  }
+
+  return { status: 'waitlist', message: 'You have been added to our waitlist! We will notify you when your account is approved.' }
 })
+
 

@@ -24,6 +24,10 @@ Now that you have Docker running, this is how you should work from now on:
 supabase status
 supabase stop and supabase start
 
+supabase migration list
+supabase db reset
+supabase db push
+
 ### When Windows claims the ports
 
 netsh interface ipv4 show excludedportrange protocol=tcp

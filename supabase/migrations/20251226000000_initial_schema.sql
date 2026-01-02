@@ -1,5 +1,5 @@
 -- Consolidated Initial Schema for ClearDesk "Life Admin Organizer"
--- Date: 2025-12-26
+-- Date: 2026-01-02
 
 -- 0. Extensions
 CREATE EXTENSION IF NOT EXISTS "pgcrypto" WITH SCHEMA "extensions";
@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS "public"."plans" (
 -- 2. Profiles table
 CREATE TABLE IF NOT EXISTS "public"."profiles" (
     "id" "uuid" NOT NULL PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-
+    "display_name" "text",
     "avatar_url" "text",
     "role" "text" DEFAULT 'member'::"text" NOT NULL,
     "subscription_status" "text" DEFAULT 'free'::"text" NOT NULL,
@@ -91,13 +91,7 @@ CREATE TABLE IF NOT EXISTS "public"."referral_invites" (
     "created_at" timestamp with time zone DEFAULT now()
 );
 
--- 9. Waitlist table
-CREATE TABLE IF NOT EXISTS "public"."waitlist" (
-    "id" "uuid" DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY,
-    "email" "text" NOT NULL UNIQUE,
-    "status" "text" DEFAULT 'queued'::"text" NOT NULL,
-    "created_at" timestamp with time zone DEFAULT now()
-);
+
 
 -- 10. Functions & Triggers
 
@@ -108,13 +102,17 @@ CREATE OR REPLACE FUNCTION public.handle_new_user()
 AS $function$
 DECLARE
     free_plan_id uuid;
+    name_from_meta text;
 BEGIN
+    -- Extract display_name from metadata if it exists
+    name_from_meta := new.raw_user_meta_data->>'display_name';
+
     -- Get the ID for the free plan (code '0')
     SELECT id INTO free_plan_id FROM public.plans WHERE code = '0';
 
     -- Create profile
-    INSERT INTO public.profiles (id, subscription_status, available_invites)
-    VALUES (new.id, '0', 0);
+    INSERT INTO public.profiles (id, display_name, subscription_status, available_invites)
+    VALUES (new.id, name_from_meta, '0', 0);
 
     -- Create initial free subscription
     IF free_plan_id IS NOT NULL THEN
@@ -158,13 +156,7 @@ USING (
   )
 );
 
-ALTER TABLE public.waitlist ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Admins can view waitlist" ON public.waitlist FOR SELECT 
-USING (
-  EXISTS (
-    SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'
-  )
-);
+
 
 ALTER TABLE public.referral_invites ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view their own invites" ON public.referral_invites FOR SELECT 
@@ -190,7 +182,7 @@ WITH CHECK (
 INSERT INTO public.plans (code, display_name, description, price_cents, features)
 VALUES 
 ('0', 'Free Plan', 'Basic life admin organization', 0, '{"max_tasks": 10}'),
-('1', 'Friends & Testers', 'Full access for our early birds', 0, '{"max_tasks": 1000}'),
+('1', 'Friends', 'Full access for our early birds', 0, '{"max_tasks": 1000}'),
 ('2', 'Premium Plan', 'Pro adulting tools', 1500, '{"max_tasks": 100, "priority_support": true}'),
 ('3', 'Family Plan', 'Shared dashboards for the household', 2500, '{"max_tasks": 500, "members": 5}')
 ON CONFLICT (code) DO NOTHING;
@@ -214,17 +206,3 @@ VALUES (
     '1', -- Friends plan
     'active'
 ) ON CONFLICT (invite_code) DO NOTHING;
-
--- Steps to create admin user:
--- 1. Register at /register with email: aida-martinez@outlook.com and code: ADMIN-BOOTSTRAP
--- 2. Run this SQL to upgrade to admin:
---    UPDATE public.profiles SET role = 'admin', available_invites = 9999999
---    WHERE id = (SELECT id FROM auth.users WHERE email = 'aida-martinez@outlook.com');
--- 3. (Optional) Update the bootstrap code referrer:
---    UPDATE public.referral_invites SET referrer_user_id = (SELECT id FROM auth.users WHERE email = 'aida-martinez@outlook.com')
---    WHERE invite_code = 'ADMIN-BOOTSTRAP';
-
-
-
-
-

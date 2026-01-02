@@ -12,6 +12,11 @@ export default defineNuxtConfig({
     '@nuxtjs/supabase',
   ],
 
+  devServer: {
+    host: '127.0.0.1', // Forces IPv4
+    port: 3000
+  },
+
   supabase: {
     redirect: false,
     redirectOptions: {
@@ -32,13 +37,11 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
-    // This maps to NUXT_SUPABASE_SERVICE_KEY
-    supabaseServiceKey: '', 
+    supabaseServiceKey: process.env.NUXT_SUPABASE_SERVICE_KEY, 
 
     public: {
-      // These map to NUXT_PUBLIC_SUPABASE_URL and NUXT_PUBLIC_SUPABASE_KEY
-      supabaseUrl: '',
-      supabaseKey: ''
+      supabaseUrl: process.env.NUXT_SUPABASE_URL,
+      supabaseKey: process.env.NUXT_SUPABASE_PUBLISHABLE_KEY,
     }
   },
 })

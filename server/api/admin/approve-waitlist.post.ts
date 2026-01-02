@@ -13,35 +13,39 @@ export default defineEventHandler(async (event) => {
   }
 
   const supabase = await serverSupabaseServiceRole(event)
-  const currentUser = await serverSupabaseUser(event)
 
-  // Generate a unique invite code
-  const inviteCode = `ADMIN-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`
+  // 1. Find the user by email to get their ID
+  const { data: userData, error: userError } = await supabase.auth.admin.listUsers()
+  if (userError) throw userError
   
-  // Create the invite code
-  const { error: inviteError } = await supabase
-    .from('referral_invites')
-    .insert({
-      invite_code: inviteCode,
-      referrer_user_id: currentUser!.id,
-      target_plan_code: planCode || '1', // Default to Friends plan
-      status: 'active',
-      expires_at: null // Admin codes don't expire by default
-    })
-
-  if (inviteError) {
-    throw createError({ statusCode: 500, message: 'Failed to create invite code' })
+  const userToApprove = userData.users.find(u => u.email?.toLowerCase() === email.toLowerCase())
+  if (!userToApprove) {
+    throw createError({ statusCode: 404, message: 'User not found' })
   }
 
-  // Optionally remove from waitlist
-  await supabase
-    .from('waitlist')
-    .delete()
-    .eq('email', email)
+  // 2. Update status in Auth Metadata
+  const { error: authError } = await supabase.auth.admin.updateUserById(userToApprove.id, {
+    user_metadata: { ...userToApprove.user_metadata, status: 'active' }
+  })
+  if (authError) throw authError
+
+  // 3. Update subscription_status and reset created_at to approval date
+  const { error: profileError } = await supabase
+    .from('profiles')
+    .update({ 
+      subscription_status: planCode || '0',
+      created_at: new Date().toISOString()
+    } as any)
+    .eq('id', userToApprove.id)
+
+
+  if (profileError) throw profileError
+
+
 
   return { 
     success: true, 
-    inviteCode,
-    message: `Invite code created for ${email}. Send them this code to register.`
+    message: `User ${email} has been approved and can now log in.`
   }
 })
+

@@ -18,4 +18,17 @@ export default defineNuxtRouteMiddleware((to) => {
     if (!user.value) {
         return navigateTo('/login')
     }
+
+    // 4. Waitlist check
+    // If user is waitlisted, they can only access /waitlisted
+    const userStatus = user.value.user_metadata?.status || 'active'
+    if (userStatus === 'waitlisted' && to.path !== '/waitlisted') {
+        return navigateTo('/waitlisted')
+    }
+    
+    // If user is NOT waitlisted but tries to access /waitlisted, send to dashboard
+    if (userStatus !== 'waitlisted' && to.path === '/waitlisted') {
+        return navigateTo('/dashboard')
+    }
 })
+

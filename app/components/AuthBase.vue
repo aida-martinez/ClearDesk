@@ -13,6 +13,7 @@
             </NuxtLink>
 
             <NuxtLink
+                v-if="secondaryAction"
                 :to="secondaryAction.to"
                 class="bg-primary-500 hover:bg-primary-600 rounded-xl px-6 py-2.5 font-medium text-white shadow-sm transition-all hover:shadow-md"
             >
@@ -54,7 +55,7 @@ interface Action {
 
 defineProps<{
     title: string
-    secondaryAction: Action
+    secondaryAction?: Action
     toggleText?: string
     toggleAction: Action
 }>()

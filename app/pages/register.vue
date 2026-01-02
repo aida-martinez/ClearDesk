@@ -1,7 +1,6 @@
 <template>
     <AuthBase
         title="Create account"
-        :secondary-action="{ label: 'Sign In', to: '/login' }"
         toggle-text="Already have an account?"
         :toggle-action="{ label: 'Sign In', to: '/login' }"
     >

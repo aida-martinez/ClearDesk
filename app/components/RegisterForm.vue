@@ -6,6 +6,17 @@
             class="flex flex-col gap-6"
         >
             <AuthInput
+                v-model="displayName"
+                label="Display Name"
+                placeholder="John Doe"
+                required
+            >
+                <template #icon>
+                    <IconsSmilyFaceIcon class="h-5 w-5" />
+                </template>
+            </AuthInput>
+
+            <AuthInput
                 v-model="email"
                 type="email"
                 label="Email"
@@ -64,6 +75,7 @@
 </template>
 
 <script setup lang="ts">
+const displayName = ref('')
 const email = ref('')
 const password = ref('')
 const inviteCode = ref('')
@@ -80,6 +92,7 @@ async function handleRegister() {
         const response: any = await $fetch('/api/auth/register', {
             method: 'POST',
             body: {
+                display_name: displayName.value,
                 email: email.value,
                 password: password.value,
                 inviteCode: inviteCode.value,

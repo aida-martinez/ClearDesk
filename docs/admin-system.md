@@ -19,7 +19,7 @@ ClearDesk uses a simple role-based admin system where users can have either `'me
 - **Body**: `{ email: string, planCode?: string }`
 - Generates an invite code for the specified email
 - Removes user from waitlist
-- Default plan: `'1'` (Friends & Testers)
+- Default plan: `'1'` (Friends)
 
 ### 3. Create Invite Codes
 

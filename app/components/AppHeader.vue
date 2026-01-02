@@ -4,38 +4,17 @@ const user = useSupabaseUser()
 const supabase = useSupabaseClient()
 
 const isLanding = computed(() => route.path === '/')
+const isAuthPage = computed(() => ['/login', '/register'].includes(route.path))
 
-// Profile state
-const profile = ref<any>(null)
+// Profile State
+const { data: meData, refresh: refreshProfile } = await useFetch<{
+    profile: any
+}>('/api/me', {
+    watch: [user],
+    immediate: true,
+})
 
-// Fetch profile data
-const fetchProfile = async () => {
-    if (!user.value) {
-        profile.value = null
-        return
-    }
-
-    try {
-        // Parallel fetch: get profile AND refresh session to ensure metadata is fresh
-        // refreshSession() ensures we get the latest user_metadata (name, role) that we just synced
-        const [profileResponse] = await Promise.all([
-            $fetch('/api/me').catch((e) => {
-                console.error('API profile fetch error:', e)
-                return null
-            }),
-            supabase.auth.refreshSession(),
-        ])
-
-        if (profileResponse?.profile) {
-            profile.value = profileResponse.profile
-        }
-    } catch (e) {
-        console.error('Error in fetchProfile sequence:', e)
-    }
-}
-
-// Watch for user changes to fetch profile
-watch(user, fetchProfile, { immediate: true })
+const profile = computed(() => meData.value?.profile || null)
 
 // Dropdown state
 const isDropdownOpen = ref(false)
@@ -68,39 +47,22 @@ onUnmounted(() => {
 
 // Computed properties for display
 const isAdmin = computed(() => {
-    const profileAdmin = profile.value?.role === 'admin'
-    const metaAdmin = user.value?.user_metadata?.role === 'admin'
-    return profileAdmin || metaAdmin
+    return profile.value?.role === 'admin'
 })
 
 const displayName = computed(() => {
-    // Order of precedence:
-    // 1. Metadata full_name
-    // 2. Metadata name
-    // 3. Metadata display_name
-    const validMetaName =
-        user.value?.user_metadata?.full_name ||
-        user.value?.user_metadata?.name ||
-        user.value?.user_metadata?.display_name
-
-    return validMetaName || user.value?.email || 'User'
+    return profile.value?.display_name || user.value?.email || 'User'
 })
 
 const avatarUrl = computed(() => {
-    if (profile.value?.avatar_url) return profile.value.avatar_url
-    if (user.value?.user_metadata?.avatar_url)
-        return user.value.user_metadata.avatar_url
-    return null
+    return profile.value?.avatar_url || null
 })
 
 const displayBadge = computed(() => {
     if (isAdmin.value) return 'Admin'
 
-    // Get plan from profile or metadata
-    const planCode =
-        profile.value?.subscription_status ||
-        user.value?.user_metadata?.plan ||
-        '0'
+    // Get plan from profile
+    const planCode = profile.value?.subscription_status || '0'
 
     // Map plan codes to names
     const planNames: Record<string, string> = {
@@ -116,7 +78,7 @@ const displayBadge = computed(() => {
 const handleSignOut = async () => {
     await supabase.auth.signOut()
     // Clear profile on sign out
-    profile.value = null
+    meData.value = undefined
     navigateTo('/login')
 }
 </script>
@@ -144,23 +106,28 @@ const handleSignOut = async () => {
                     <!-- CTA Buttons -->
                     <div class="flex items-center gap-4">
                         <template v-if="!user">
-                            <NuxtLink
-                                to="/login"
-                                class="hover:text-primary-600 text-sm font-medium text-neutral-600 transition-colors"
+                            <div
+                                v-if="!isAuthPage"
+                                class="flex items-center gap-4"
                             >
-                                Sign in
-                            </NuxtLink>
-                            <NuxtLink
-                                to="/register"
-                                class="bg-primary-500 hover:bg-primary-600 hover:shadow-primary-500/30 focus:ring-primary-500 hidden items-center justify-center rounded-full px-5 py-2.5 text-sm font-semibold text-white transition-all hover:shadow-lg focus:ring-2 focus:ring-offset-2 focus:outline-none sm:inline-flex"
-                            >
-                                Join the waitlist
-                            </NuxtLink>
+                                <NuxtLink
+                                    to="/login"
+                                    class="hover:text-primary-600 text-sm font-medium text-neutral-600 transition-colors"
+                                >
+                                    Sign in
+                                </NuxtLink>
+                                <NuxtLink
+                                    to="/register"
+                                    class="bg-primary-500 hover:bg-primary-600 hover:shadow-primary-500/30 focus:ring-primary-500 hidden items-center justify-center rounded-full px-5 py-2.5 text-sm font-semibold text-white transition-all hover:shadow-lg focus:ring-2 focus:ring-offset-2 focus:outline-none sm:inline-flex"
+                                >
+                                    Join the waitlist
+                                </NuxtLink>
+                            </div>
                         </template>
                         <template v-else>
                             <NuxtLink
                                 to="/new"
-                                class="button-action button-action--sm mr-4 !flex items-center justify-center gap-2"
+                                class="button-action button-action--sm mr-4 flex! items-center justify-center gap-2"
                             >
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
@@ -211,7 +178,7 @@ const handleSignOut = async () => {
 
                                     <!-- Name & Role -->
                                     <div
-                                        class="mr-1 hidden flex-col items-start leading-tight sm:flex"
+                                        class="mr-1 hidden shrink-0 flex-col items-start leading-tight sm:flex"
                                     >
                                         <span
                                             class="text-sm font-medium text-neutral-900"
@@ -304,10 +271,38 @@ const handleSignOut = async () => {
                                                         </g>
                                                     </g>
                                                 </svg>
-                                                Profile Settings
+                                                Profile
+                                            </NuxtLink>
+                                            <NuxtLink
+                                                v-if="isAdmin"
+                                                to="/admin"
+                                                class="group flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-50 hover:text-neutral-900"
+                                                @click="isDropdownOpen = false"
+                                            >
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    fill="none"
+                                                    viewBox="0 0 24 24"
+                                                    stroke-width="1.5"
+                                                    stroke="currentColor"
+                                                    class="h-4 w-4 text-neutral-500 group-hover:text-neutral-900"
+                                                >
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6Z"
+                                                    />
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5Z"
+                                                    />
+                                                </svg>
+                                                Admin Dashboard
                                             </NuxtLink>
                                             <NuxtLink
                                                 to="/settings/preferences"
+
                                                 class="group flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-50 hover:text-neutral-900"
                                                 @click="isDropdownOpen = false"
                                             >
