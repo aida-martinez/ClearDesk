@@ -99,8 +99,14 @@
 
                 <!-- Family Tier -->
                 <div
-                    class="relative flex flex-col overflow-hidden rounded-2xl border border-neutral-100 bg-white p-8 shadow-sm"
+                    class="relative flex flex-col overflow-hidden rounded-2xl border border-neutral-100 bg-white p-8 opacity-60 shadow-sm"
                 >
+                    <div class="absolute top-2 right-2">
+                        <span
+                            class="inline-flex items-center rounded-full border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm font-medium tracking-wide text-neutral-500"
+                            >Coming soon</span
+                        >
+                    </div>
                     <div class="grow">
                         <h3 class="text-lg font-semibold text-neutral-900">
                             Family plan
@@ -121,18 +127,18 @@
                             >
                                 <Icon
                                     name="heroicons:check-circle"
-                                    class="text-success mr-3 h-5 w-5"
+                                    class="mr-3 h-5 w-5 text-neutral-300"
                                 />
                                 {{ feat }}
                             </li>
                         </ul>
                     </div>
-                    <NuxtLink
-                        to="/register"
-                        class="block w-full rounded-lg border border-neutral-200 px-5 py-3 text-center font-semibold text-neutral-600 transition-colors hover:bg-neutral-50"
+                    <button
+                        disabled
+                        class="block w-full cursor-not-allowed rounded-lg border border-neutral-200 bg-neutral-50 px-5 py-3 text-center font-semibold text-neutral-400 transition-colors"
                     >
-                        Go For it
-                    </NuxtLink>
+                        Coming soon
+                    </button>
                 </div>
             </div>
         </div>

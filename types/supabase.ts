@@ -135,6 +135,7 @@ export type Database = {
           created_at: string | null
           expires_at: string | null
           invite_code: string
+          invite_type: string
           referrer_user_id: string | null
           status: string
           target_plan_code: string | null
@@ -143,6 +144,7 @@ export type Database = {
           created_at?: string | null
           expires_at?: string | null
           invite_code: string
+          invite_type?: string
           referrer_user_id?: string | null
           status?: string
           target_plan_code?: string | null
@@ -151,6 +153,7 @@ export type Database = {
           created_at?: string | null
           expires_at?: string | null
           invite_code?: string
+          invite_type?: string
           referrer_user_id?: string | null
           status?: string
           target_plan_code?: string | null

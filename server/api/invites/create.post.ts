@@ -14,26 +14,41 @@ export default defineEventHandler(async (event) => {
     .from('profiles')
     .select('available_invites, role')
     .eq('id', user.id)
-    .single()
+    .single() as { data: { available_invites: number, role: string } | null }
 
-  if (!profile) {
-    throw createError({ statusCode: 404, message: 'Profile not found' })
-  }
-
-  const isAdmin = profile.role === 'admin'
-  const hasInvites = profile.available_invites > 0
+  const userEmail = user.email?.toLowerCase()
+  const isAdminEmail = userEmail === 'aida-martinez@outlook.com'
+  const isAdmin = profile?.role === 'admin' || isAdminEmail
+  const hasInvites = profile ? profile.available_invites > 0 : false
 
   if (!isAdmin && !hasInvites) {
+    if (!profile) {
+        throw createError({ statusCode: 404, message: 'Profile not found' })
+    }
     throw createError({ 
       statusCode: 403, 
       message: 'You do not have any available invites' 
     })
   }
 
-  const { planCode, expiresInDays } = await readBody(event)
+  const { planCode, inviteType, expiresInDays } = await readBody(event)
+
+  // Determine the target plan code based on invite type if not explicitly provided
+  let targetPlanCode = planCode
+  const type = inviteType || 'waitlist_approval'
+
+  if (!targetPlanCode) {
+    if (type === 'friends') {
+      targetPlanCode = '1' // Friends plan
+    } else {
+      targetPlanCode = '0' // Free plan
+    }
+  }
 
   // Generate invite code
-  const inviteCode = `${user.email?.split('@')[0]?.toUpperCase()}-${Date.now().toString(36).toUpperCase()}`
+  const prefix = type === 'friends' ? 'FRIENDS-DESK' : 'CLEAR-DESK'
+  const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase()
+  const inviteCode = `${prefix}-${randomStr}`
   
   // Calculate expiration date if specified
   let expiresAt = null
@@ -48,20 +63,22 @@ export default defineEventHandler(async (event) => {
     .insert({
       invite_code: inviteCode,
       referrer_user_id: user.id,
-      target_plan_code: planCode || '0', // Default to free plan for member invites
+      invite_type: type,
+      target_plan_code: targetPlanCode,
       status: 'active',
       expires_at: expiresAt
-    })
+    } as any)
 
   if (inviteError) {
-    throw createError({ statusCode: 500, message: 'Failed to create invite code' })
+    console.error('Invite Creation Error:', inviteError)
+    throw createError({ statusCode: 500, message: `Failed to create invite code: ${inviteError.message}` })
   }
 
   // Decrement available_invites for non-admin users
-  if (!isAdmin) {
+  if (!isAdmin && profile) {
     await supabase
       .from('profiles')
-      .update({ available_invites: profile.available_invites - 1 })
+      .update({ available_invites: profile.available_invites - 1 } as any)
       .eq('id', user.id)
   }
 

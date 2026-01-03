@@ -85,10 +85,12 @@ CREATE TABLE IF NOT EXISTS "public"."task_tags" (
 CREATE TABLE IF NOT EXISTS "public"."referral_invites" (
     "invite_code" "text" NOT NULL PRIMARY KEY,
     "referrer_user_id" "uuid" REFERENCES auth.users(id) ON DELETE CASCADE,
+    "invite_type" "text" DEFAULT 'waitlist_approval'::"text" NOT NULL, -- waitlist_approval
     "target_plan_code" "text" DEFAULT '0',
     "status" "text" DEFAULT 'active'::"text" NOT NULL, -- active, used, expired
     "expires_at" timestamp with time zone,
-    "created_at" timestamp with time zone DEFAULT now()
+    "created_at" timestamp with time zone DEFAULT now(),
+    CONSTRAINT invite_type_check CHECK (invite_type IN ('waitlist_approval', 'friends'))
 );
 
 

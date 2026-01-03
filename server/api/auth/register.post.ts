@@ -19,14 +19,16 @@ export default defineEventHandler(async (event) => {
 
     if (invite && !isExpired) {
       // 2. SUCCESS: Create user directly in Auth
+      // Both waitlist_approval and friends codes allow skipping the waitlist
       const { data: userData, error: signUpError } = await supabaseAdmin.auth.admin.createUser({
         email: body.email,
         password: body.password,
         email_confirm: true, // Auto-confirm since they have a code
         user_metadata: {
           display_name: body.display_name,
-          source: 'referral',
-          code: body.inviteCode,
+          source: 'invite',
+          invite_code: body.inviteCode,
+          invite_type: invite.invite_type,
           plan: invite.target_plan_code || '0',
         },
       })
@@ -45,13 +47,15 @@ export default defineEventHandler(async (event) => {
           .eq('id', newUser.id)
       }
 
-      // If the invite specified a special plan (not '0'), update the subscription
-      // The DB trigger handle_new_user already created a '0' (free) subscription.
-      if (invite.target_plan_code && invite.target_plan_code !== '0' && newUser) {
+      // If the invite specified a special plan (like 'friends' type), update the subscription
+      // target_plan_code '0' is Free, '1' is Friends.
+      const targetPlan = invite.target_plan_code || '0'
+      
+      if (targetPlan !== '0' && newUser) {
         const { data: plan } = (await supabaseAdmin
           .from('plans')
           .select('id')
-          .eq('code', invite.target_plan_code)
+          .eq('code', targetPlan)
           .single()) as { data: any }
 
         if (plan) {
@@ -65,7 +69,7 @@ export default defineEventHandler(async (event) => {
           await supabaseAdmin
             .from('profiles')
             .update({
-              subscription_status: invite.target_plan_code,
+              subscription_status: targetPlan,
             } as any)
             .eq('id', newUser.id)
         }

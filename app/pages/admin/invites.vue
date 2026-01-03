@@ -10,18 +10,48 @@ definePageMeta({
 })
 
 const planOptions = [
-    { label: 'Friends Plan', value: '1' },
-    { label: 'Pro Plan', value: '2' },
+    { 
+        label: 'Waitlist Approval', 
+        value: '0', 
+        type: 'waitlist_approval',
+        description: 'Skip waitlist, Free plan'
+    },
+    { 
+        label: 'Friends Plan', 
+        value: '1', 
+        type: 'friends',
+        description: 'Skip waitlist, Friends plan'
+    },
 ]
 
 const form = ref({
-    planCode: '1',
+    planCode: '0',
+    inviteType: 'waitlist_approval' as 'waitlist_approval' | 'friends',
     expiresInDays: 30,
 })
 
 const generatedCode = ref('')
 const loading = ref(false)
 const error = ref('')
+
+const { data: myInvites, refresh: refreshInvites } = await useFetch('/api/invites/my-invites')
+
+const copySuccess = ref<Record<string, boolean>>({})
+
+function copyToClipboard(text: string) {
+    if (process.client) {
+        navigator.clipboard.writeText(text)
+        copySuccess.value[text] = true
+        setTimeout(() => {
+            copySuccess.value[text] = false
+        }, 2000)
+    }
+}
+
+function selectPlan(plan: typeof planOptions[0]) {
+    form.value.planCode = plan.value
+    form.value.inviteType = plan.type as any
+}
 
 async function generateCode() {
     loading.value = true
@@ -32,21 +62,22 @@ async function generateCode() {
         const res = await $fetch('/api/invites/create', {
             method: 'POST',
             body: {
-                planCode: form.value.planCode, // Note: backend create.post.ts uses planCode
+                planCode: form.value.planCode,
+                inviteType: form.value.inviteType,
                 expiresInDays: parseInt(form.value.expiresInDays.toString()),
             },
         })
         generatedCode.value = res.inviteCode
+        await refreshInvites()
     } catch (e: any) {
-        error.value = e.message || 'Error generating code'
+        error.value = e.data?.message || e.message || 'Error generating code'
     } finally {
         loading.value = false
     }
 }
 
 function copyCode() {
-    navigator.clipboard.writeText(generatedCode.value)
-    // simple visual feedback could be added
+    copyToClipboard(generatedCode.value)
 }
 </script>
 
@@ -89,11 +120,12 @@ function copyCode() {
                             class="mb-2 block text-sm font-medium text-gray-700"
                             >Target Plan</label
                         >
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <button
                                 v-for="plan in planOptions"
                                 :key="plan.value"
-                                @click="form.planCode = plan.value"
+                                @click="selectPlan(plan)"
+                                type="button"
                                 :class="[
                                     'rounded-xl border px-4 py-3 text-left transition-all',
                                     form.planCode === plan.value
@@ -105,7 +137,7 @@ function copyCode() {
                                     {{ plan.label }}
                                 </div>
                                 <div class="mt-1 text-xs opacity-75">
-                                    Unlock {{ plan.label }} features
+                                    {{ plan.description }}
                                 </div>
                             </button>
                         </div>
@@ -142,7 +174,7 @@ function copyCode() {
                     <button
                         @click="generateCode"
                         :disabled="loading"
-                        class="flex w-full items-center justify-center gap-2 rounded-xl bg-gray-900 py-3 font-medium text-white transition-colors hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-70"
+                        class="flex w-full items-center justify-center gap-2 rounded-xl bg-gray-900 py-3 font-medium text-white transition-colors hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-70 cursor-pointer"
                     >
                         <Icon
                             v-if="loading"
@@ -183,11 +215,79 @@ function copyCode() {
                     >
                     <button
                         @click="copyCode"
-                        class="rounded-md p-2 text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-900"
+                        class="relative rounded-md p-2 text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-900"
                         title="Copy to clipboard"
                     >
-                        <Icon name="ph:copy" class="h-5 w-5" />
+                        <transition mode="out-in">
+                            <Icon v-if="copySuccess[generatedCode]" name="ph:check" class="h-5 w-5 text-emerald-500" />
+                            <Icon v-else name="ph:copy" class="h-5 w-5" />
+                        </transition>
+                        <span v-if="copySuccess[generatedCode]" class="absolute -top-10 left-1/2 -translate-x-1/2 rounded bg-gray-900 px-2 py-1 text-xs text-white">Copied!</span>
                     </button>
+                </div>
+            </div>
+
+            <!-- Active Invites List -->
+            <div
+                class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
+            >
+                <div class="border-b border-gray-100 p-6">
+                    <h2 class="text-lg font-semibold text-gray-900">
+                        Your Active Invites <span class="text-sm text-gray-500">(Total: {{ myInvites.length }})</span>
+                    </h2>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="border-b border-gray-100 bg-gray-50/50 text-xs font-semibold tracking-wider text-gray-500 uppercase">
+                            <tr>
+                                <th class="px-6 py-4">Code</th>
+                                <th class="px-6 py-4">Type</th>
+                                <th class="px-6 py-4">Plan</th>
+                                <th class="px-6 py-4">Expires</th>
+                                <th class="px-6 py-4 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-50">
+                            <tr v-for="invite in myInvites" :key="invite.invite_code" class="group hover:bg-gray-50/80">
+                                <td class="px-6 py-4 whitespace-nowrap font-mono text-sm font-bold text-gray-900">
+                                    {{ invite.invite_code }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                    <span :class="[
+                                        'rounded-full px-2 py-0.5 text-xs font-medium',
+                                        invite.invite_type === 'friends' ? 'bg-purple-50 text-purple-700' : 'bg-emerald-50 text-emerald-700'
+                                    ]">
+                                        {{ invite.invite_type === 'friends' ? 'Friends' : 'Waitlist' }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                    {{ invite.target_plan_code === '1' ? 'Friends' : 'Free' }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ invite.expires_at ? new Date(invite.expires_at).toLocaleDateString() : 'Never' }}
+                                </td>
+                                <td class="px-6 py-4 text-right whitespace-nowrap">
+                                    <button
+                                        @click="copyToClipboard(invite.invite_code)"
+                                        class="relative rounded-md p-2 text-gray-400 transition-colors hover:bg-white hover:text-gray-900"
+                                        title="Copy to clipboard"
+                                    >
+                                        <transition mode="out-in">
+                                            <Icon v-if="copySuccess[invite.invite_code]" name="ph:check" class="h-5 w-5 text-emerald-500" />
+                                            <Icon v-else name="ph:copy" class="h-5 w-5" />
+                                        </transition>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div v-if="!myInvites || myInvites.length === 0" class="flex flex-col items-center justify-center py-12 text-center">
+                    <div class="rounded-full bg-gray-50 p-3 text-gray-400">
+                        <Icon name="ph:ticket" class="h-8 w-8" />
+                    </div>
+                    <p class="mt-4 text-sm font-medium text-gray-900">No active invites found</p>
+                    <p class="mt-1 text-sm text-gray-500">Generate a code above to get started.</p>
                 </div>
             </div>
         </div>

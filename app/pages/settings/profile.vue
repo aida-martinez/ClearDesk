@@ -329,12 +329,22 @@ useHead({
                                         access</span
                                     >
                                 </div>
-                                <button
-                                    v-if="!isAdmin"
-                                    class="bg-primary-500 hover:bg-primary-600 hover:shadow-primary-500/20 focus:ring-primary-500 mt-4 rounded-lg px-4 py-2 text-sm font-bold text-white shadow-sm transition-all hover:shadow focus:ring-2 focus:ring-offset-2 focus:outline-none"
-                                >
-                                    Upgrade to Premium
-                                </button>
+                                <div class="mt-4 flex flex-wrap gap-4">
+                                    <button
+                                        v-if="!isAdmin && profile.subscription_status === '0'"
+                                        class="bg-primary-500 hover:bg-primary-600 hover:shadow-primary-500/20 focus:ring-primary-500 rounded-lg px-4 py-2 text-sm font-bold text-white shadow-sm transition-all hover:shadow focus:ring-2 focus:ring-offset-2 focus:outline-none cursor-pointer"
+                                    >
+                                        Upgrade to Premium
+                                    </button>
+                                    <NuxtLink
+                                        v-if="!isAdmin && profile?.subscription_status !== '1'"
+                                        to="/redeem"
+                                        class="flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-4 py-2 text-sm font-bold text-neutral-700 shadow-sm transition-all hover:bg-neutral-50 hover:shadow focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2 focus:outline-none"
+                                    >
+                                        <Icon name="ph:ticket" class="h-4 w-4" />
+                                        Redeem Invite Code
+                                    </NuxtLink>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -353,7 +363,7 @@ useHead({
                     </p>
                     <div class="mt-4">
                         <button
-                            class="rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition-all hover:bg-red-700 hover:shadow hover:shadow-red-600/20 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none"
+                            class="rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition-all hover:bg-red-700 hover:shadow hover:shadow-red-600/20 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none cursor-pointer"
                         >
                             Delete Account
                         </button>
